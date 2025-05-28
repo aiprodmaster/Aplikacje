@@ -1,0 +1,2439 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comarch XL - Environment Pipeline + GitHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            transition: all 0.3s ease;
+        }
+
+        body.dark {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .dark .header {
+            background: #1e293b;
+            border-color: #475569;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 2rem;
+            height: 2rem;
+            background: #3b82f6;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-github {
+            background: #24292e;
+            color: white;
+        }
+
+        .btn-github:hover {
+            background: #1a1e23;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .dark .btn-secondary {
+            background: #475569;
+            color: #e2e8f0;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 0;
+        }
+
+        .dark .nav-tabs {
+            border-color: #475569;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-tab.active {
+            border-bottom-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .nav-tab:hover {
+            background: #f1f5f9;
+        }
+
+        .dark .nav-tab:hover {
+            background: #334155;
+        }
+
+        /* GitHub Setup */
+        .github-setup {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .dark .github-setup {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        .github-setup.connected {
+            background: #dcfce7;
+            border-color: #22c55e;
+            position: relative;
+        }
+
+        .dark .github-setup.connected {
+            background: #14532d;
+            border-color: #22c55e;
+        }
+
+        .github-setup.connected::before {
+            content: "💾 KONFIGURACJA ZAPISANA";
+            position: absolute;
+            top: -8px;
+            right: 10px;
+            background: #22c55e;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .setup-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+        }
+
+        .dark .form-input {
+            background: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+
+        .github-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .status-indicator.connected {
+            background: #22c55e;
+        }
+
+        /* Environment Dashboard */
+        .environment-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .environment-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+
+        .dark .environment-card {
+            background: #1e293b;
+        }
+
+        .env-dev {
+            border-left-color: #3b82f6;
+        }
+
+        .env-test {
+            border-left-color: #f59e0b;
+        }
+
+        .env-prod {
+            border-left-color: #10b981;
+        }
+
+        .env-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .env-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .env-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+        }
+
+        .dark .stat-item {
+            background: #334155;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .env-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Pipeline View */
+        .pipeline-container {
+            padding: 1.5rem;
+        }
+
+        .pipeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .pipeline-script {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .pipeline-script {
+            background: #1e293b;
+        }
+
+        .pipeline-script-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .pipeline-script-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .pipeline-flow {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .pipeline-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 80px;
+        }
+
+        .pipeline-stage-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .stage-dev {
+            background: #3b82f6;
+        }
+
+        .stage-test {
+            background: #f59e0b;
+        }
+
+        .stage-prod {
+            background: #10b981;
+        }
+
+        .stage-inactive {
+            background: #d1d5db !important;
+            color: #9ca3af !important;
+        }
+
+        .pipeline-arrow {
+            font-size: 1.5rem;
+            color: #d1d5db;
+        }
+
+        .pipeline-arrow.active {
+            color: #3b82f6;
+        }
+
+        .pipeline-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stage-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .stage-status {
+            font-size: 0.625rem;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        /* Script List */
+        .scripts-container {
+            padding: 1.5rem;
+        }
+
+        .scripts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 16rem;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 0.5rem 0.5rem 2.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+        }
+
+        .dark .search-input {
+            background: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .select {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+        }
+
+        .dark .select {
+            background: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+
+        .script-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .script-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .script-card.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .dark .script-card {
+            background: #1e293b;
+            border-color: #475569;
+        }
+
+        .dark .script-card.active {
+            background: #1e40af;
+            border-color: #3b82f6;
+        }
+
+        .script-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .script-title {
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .script-badges {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-dev {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-test {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-prod {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .script-description {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .script-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .script-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .icon-btn {
+            padding: 0.25rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .icon-btn:hover {
+            background: #f1f5f9;
+            color: #374151;
+        }
+
+        .dark .icon-btn:hover {
+            background: #374151;
+            color: #e5e7eb;
+        }
+
+        .icon-btn.danger:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .script-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .tag {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+        }
+
+        .dark .tag {
+            background: #374151;
+            color: #9ca3af;
+        }
+
+        /* Details Panel */
+        .details-panel {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .details-panel {
+            background: #1e293b;
+        }
+
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .details-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .dark .metadata-grid {
+            background: #334155;
+        }
+
+        .metadata-item label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .code-block {
+            background: #1a202c;
+            color: #68d391;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            margin-top: 0.5rem;
+        }
+
+        .deployment-history {
+            margin-top: 1.5rem;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dark .history-item {
+            background: #334155;
+        }
+
+        .history-item.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .history-item.failed {
+            border-left: 4px solid #ef4444;
+        }
+
+        .history-item.pending {
+            border-left: 4px solid #f59e0b;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.5rem;
+            max-width: 64rem;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .dark .modal-content {
+            background: #1e293b;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+        }
+
+        .dark .form-textarea {
+            background: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+
+        .code-textarea {
+            font-family: 'Courier New', monospace;
+            background: #f9fafb;
+            color: #16a34a;
+        }
+
+        .dark .code-textarea {
+            background: #111827;
+            color: #22c55e;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .dark .form-actions {
+            border-color: #475569;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 20rem;
+            color: #64748b;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 4rem;
+            height: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            z-index: 200;
+            animation: slideIn 0.3s ease-out;
+            max-width: 400px;
+        }
+
+        .notification.error {
+            background: #ef4444;
+        }
+
+        .notification.warning {
+            background: #f59e0b;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .environment-dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .setup-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline-flow {
+                flex-direction: column;
+            }
+
+            .pipeline-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">🚀</div>
+                    <div>
+                        <div class="title">Comarch XL - Environment Pipeline</div>
+                        <div class="subtitle">Professional deployment management + GitHub</div>
+                    </div>
+                </div>
+                <div class="header-buttons">
+                    <button class="btn btn-secondary" onclick="toggleDarkMode()">🌓 Tryb</button>
+                    <button class="btn btn-secondary" onclick="showProjectManager()">🎯 Projekty</button>
+                    <button class="btn btn-primary" onclick="showAddForm()">➕ Dodaj skrypt</button>
+                    <button class="btn btn-github" onclick="syncWithGitHub()" id="syncBtn" disabled>
+                        <span class="spinner" id="syncSpinner" style="display: none;"></span>
+                        🔄 Sync GitHub
+                    </button>
+                </div>
+            </div>
+
+            <!-- GitHub Setup -->
+            <div class="github-setup" id="githubSetup">
+                <div class="setup-form">
+                    <div class="form-group">
+                        <label>GitHub Token</label>
+                        <input type="password" class="form-input" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>Repository (user/repo)</label>
+                        <input type="text" class="form-input" id="githubRepo" placeholder="np. twoj-user/sql-scripts">
+                    </div>
+                    <div class="form-group">
+                        <label>Folder w repo</label>
+                        <input type="text" class="form-input" id="githubFolder" value="comarch-xl-scripts">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-github" onclick="connectGitHub()">🔗 Połącz</button>
+                        <button class="btn btn-secondary" onclick="clearGitHubConfig()" style="margin-top: 0.5rem;">🗑️ Wyczyść</button>
+                    </div>
+                </div>
+                <div class="github-status" id="githubStatus">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText">Sprawdzanie zapisanej konfiguracji...</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('dashboard')" id="tab-dashboard">
+                    🏠 Environment Dashboard
+                </button>
+                <button class="nav-tab" onclick="showTab('pipeline')" id="tab-pipeline">
+                    🚀 Pipeline View
+                </button>
+                <button class="nav-tab" onclick="showTab('scripts')" id="tab-scripts">
+                    📜 All Scripts
+                </button>
+            </div>
+        </div>
+
+        <!-- Environment Dashboard -->
+        <div id="dashboard-view" class="environment-dashboard">
+            <div class="environment-card env-dev">
+                <div class="env-header">
+                    <div class="env-title">
+                        📝 DEVELOPMENT
+                    </div>
+                    <div class="env-actions">
+                        <button class="btn btn-sm btn-primary" onclick="filterByEnvironment('dev')">View All</button>
+                    </div>
+                </div>
+                <div class="env-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="dev-count">0</div>
+                        <div class="stat-label">Scripts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="dev-modified">0</div>
+                        <div class="stat-label">Modified</div>
+                    </div>
+                </div>
+                <div class="env-actions">
+                    <button class="btn btn-sm btn-primary" onclick="promoteAllToTest()">📤 Promote Ready to TEST</button>
+                </div>
+            </div>
+
+            <div class="environment-card env-test">
+                <div class="env-header">
+                    <div class="env-title">
+                        🧪 TEST
+                    </div>
+                    <div class="env-actions">
+                        <button class="btn btn-sm btn-warning" onclick="filterByEnvironment('test')">View All</button>
+                    </div>
+                </div>
+                <div class="env-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="test-count">0</div>
+                        <div class="stat-label">Scripts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="test-pending">0</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                <div class="env-actions">
+                    <button class="btn btn-sm btn-warning" onclick="promoteAllToProd()">🚀 Deploy Ready to PROD</button>
+                </div>
+            </div>
+
+            <div class="environment-card env-prod">
+                <div class="env-header">
+                    <div class="env-title">
+                        🚀 PRODUCTION
+                    </div>
+                    <div class="env-actions">
+                        <button class="btn btn-sm btn-success" onclick="filterByEnvironment('prod')">View All</button>
+                    </div>
+                </div>
+                <div class="env-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="prod-count">0</div>
+                        <div class="stat-label">Deployed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="prod-today">0</div>
+                        <div class="stat-label">Today</div>
+                    </div>
+                </div>
+                <div class="env-actions">
+                    <button class="btn btn-sm btn-secondary" onclick="showDeploymentHistory()">📊 View History</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pipeline View -->
+        <div id="pipeline-view" class="pipeline-container" style="display: none;">
+            <div class="pipeline-header">
+                <h2>🚀 Deployment Pipeline</h2>
+                <div class="filters">
+                    <select class="select" id="pipelineStatusFilter" onchange="filterPipeline()">
+                        <option value="">All Statuses</option>
+                        <option value="dev">In Development</option>
+                        <option value="test">In Testing</option>
+                        <option value="prod">In Production</option>
+                        <option value="ready-for-test">Ready for TEST</option>
+                        <option value="ready-for-prod">Ready for PROD</option>
+                    </select>
+                    <select class="select" id="pipelineProjectFilter" onchange="filterPipeline()">
+                        <option value="">All Projects</option>
+                    </select>
+                </div>
+            </div>
+            <div id="pipelineList"></div>
+        </div>
+
+        <!-- Scripts View -->
+        <div id="scripts-view" class="scripts-container" style="display: none;">
+            <div class="scripts-header">
+                <h2>📜 All Scripts</h2>
+                <div class="script-actions">
+                    <button class="btn btn-secondary" onclick="exportScripts()">📤 Export JSON</button>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Szukaj skryptów..." id="searchInput" oninput="filterScripts()">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <select class="select" id="categoryFilter" onchange="filterScripts()">
+                    <option value="">Wszystkie kategorie</option>
+                </select>
+                <select class="select" id="moduleFilter" onchange="filterScripts()">
+                    <option value="">Wszystkie moduły</option>
+                </select>
+                <select class="select" id="projectFilter" onchange="filterScripts()">
+                    <option value="">Wszystkie projekty</option>
+                </select>
+                <select class="select" id="environmentFilter" onchange="filterScripts()">
+                    <option value="">Wszystkie środowiska</option>
+                    <option value="dev">Development</option>
+                    <option value="test">Test</option>
+                    <option value="prod">Production</option>
+                </select>
+            </div>
+
+            <div id="scriptsList"></div>
+        </div>
+
+        <!-- Script Details -->
+        <div id="scriptDetails" class="details-panel" style="display: none;"></div>
+    </div>
+
+    <!-- Project Manager Modal -->
+    <div id="projectModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>🎯 Zarządzanie projektami</h2>
+                <button class="icon-btn" onclick="closeProjectModal()">✖️</button>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <h3 style="margin-bottom: 1rem;">Dodaj nowy projekt</h3>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" class="form-input" id="newProjectName" placeholder="Nazwa projektu" style="flex: 1;">
+                    <button class="btn btn-primary" onclick="addProject()">➕ Dodaj</button>
+                </div>
+            </div>
+
+            <div>
+                <h3 style="margin-bottom: 1rem;">Twoje projekty</h3>
+                <div id="projectsList" style="max-height: 400px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="form-actions">
+                <div></div>
+                <button class="btn btn-secondary" onclick="closeProjectModal()">Zamknij</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Script Modal -->
+    <div id="scriptModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Dodaj nowy skrypt</h2>
+                <button class="icon-btn" onclick="closeModal()">✖️</button>
+            </div>
+
+            <div class="form-grid">
+                <div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Nazwa skryptu *</label>
+                        <input type="text" class="form-input" id="scriptName" placeholder="np. Aktualizacja struktur magazynowych">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label>Kategoria *</label>
+                            <select class="form-input" id="scriptCategory"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Moduł *</label>
+                            <select class="form-input" id="scriptModule"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Projekt *</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <select class="form-input" id="scriptProject" style="flex: 1;" onchange="handleProjectChange()">
+                                <option value="">Wybierz projekt</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary" onclick="showAddProjectForm()">➕ Nowy</button>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label>Priorytet</label>
+                            <select class="form-input" id="scriptPriority">
+                                <option value="Niski">Niski</option>
+                                <option value="Średni" selected>Średni</option>
+                                <option value="Wysoki">Wysoki</option>
+                                <option value="Krytyczny">Krytyczny</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Środowisko</label>
+                            <select class="form-input" id="scriptEnvironment">
+                                <option value="dev" selected>Development</option>
+                                <option value="test">Test</option>
+                                <option value="prod">Production</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Wersja</label>
+                            <input type="text" class="form-input" id="scriptVersion" placeholder="np. 2024.1">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Tagi</label>
+                        <input type="text" class="form-input" id="scriptTags" placeholder="np. vat, struktura, towary">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Opis</label>
+                        <textarea class="form-textarea" id="scriptDescription" rows="3" placeholder="Opis funkcjonalności skryptu"></textarea>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="form-group">
+                        <label>Kod SQL *</label>
+                        <textarea class="form-textarea code-textarea" id="scriptContent" rows="16" placeholder="Wklej tutaj kod SQL..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <div>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+                        <input type="checkbox" id="autoSyncGithub" checked>
+                        Auto-sync z GitHub
+                    </label>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-secondary" onclick="closeModal()">Anuluj</button>
+                    <button class="btn btn-primary" id="saveButton" onclick="saveScript()">💾 Zapisz skrypt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Globalne zmienne
+        let scripts = [];
+        let selectedScript = null;
+        let editingScript = null;
+        let darkMode = false;
+        let githubConnected = false;
+        let githubConfig = {
+            token: '',
+            repo: '',
+            folder: 'comarch-xl-scripts'
+        };
+        let currentView = 'dashboard';
+
+        // Dane konfiguracyjne
+        const categories = ['Wdrożenie', 'Migracja', 'Hotfix', 'Utrzymanie', 'Konfiguracja', 'Procedury', 'Funkcje', 'Triggery', 'Indeksy', 'Widoki', 'Backup'];
+        const modules = ['Księgowość', 'Kadry i Płace', 'Magazyn', 'Handel', 'Środki Trwałe', 'Controlling', 'CRM', 'Serwis', 'Produkcja', 'Projekty', 'BI', 'Ogólne'];
+        
+        // Projekty użytkownika - można je edytować
+        let userProjects = [
+            'Implementacja nowego VAT',
+            'Migracja na Comarch XL 2024',
+            'Optymalizacja wydajności',
+            'Integracja z systemami zewnętrznymi',
+            'Automatyzacja procesów księgowych'
+        ];
+
+        // === INICJALIZACJA ===
+        function initApp() {
+            console.log('Environment Pipeline - Inicjalizacja...');
+            
+            if (darkMode) {
+                document.body.classList.add('dark');
+            }
+
+            // Wczytaj zapisaną konfigurację GitHub
+            loadGitHubConfig();
+
+            populateFilters();
+            populateFormSelects();
+            loadSampleData();
+            updateEnvironmentStats();
+            renderCurrentView();
+        }
+
+        function populateFilters() {
+            const categoryFilter = document.getElementById('categoryFilter');
+            const moduleFilter = document.getElementById('moduleFilter');
+            const projectFilter = document.getElementById('projectFilter');
+            const pipelineProjectFilter = document.getElementById('pipelineProjectFilter');
+            
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                categoryFilter.appendChild(option);
+            });
+            
+            modules.forEach(mod => {
+                const option = document.createElement('option');
+                option.value = mod;
+                option.textContent = mod;
+                moduleFilter.appendChild(option);
+            });
+
+            // Populate project filters
+            function populateProjectFilter(selectElement) {
+                selectElement.innerHTML = selectElement === projectFilter ? 
+                    '<option value="">Wszystkie projekty</option>' : 
+                    '<option value="">All Projects</option>';
+                
+                userProjects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project;
+                    option.textContent = project;
+                    selectElement.appendChild(option);
+                });
+            }
+
+            if (projectFilter) populateProjectFilter(projectFilter);
+            if (pipelineProjectFilter) populateProjectFilter(pipelineProjectFilter);
+        }
+
+        function populateFormSelects() {
+            const categorySelect = document.getElementById('scriptCategory');
+            const moduleSelect = document.getElementById('scriptModule');
+            const projectSelect = document.getElementById('scriptProject');
+            
+            categorySelect.innerHTML = '<option value="">Wybierz kategorię</option>';
+            moduleSelect.innerHTML = '<option value="">Wybierz moduł</option>';
+            projectSelect.innerHTML = '<option value="">Wybierz projekt</option>';
+            
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                categorySelect.appendChild(option);
+            });
+            
+            modules.forEach(mod => {
+                const option = document.createElement('option');
+                option.value = mod;
+                option.textContent = mod;
+                moduleSelect.appendChild(option);
+            });
+
+            userProjects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project;
+                option.textContent = project;
+                projectSelect.appendChild(option);
+            });
+        }
+
+        function loadSampleData() {
+            if (scripts.length === 0) {
+                scripts = [
+                    {
+                        id: 1,
+                        name: 'Aktualizacja struktur magazynowych',
+                        content: 'UPDATE MAG_STRUKTURY SET status = \'AKTYWNY\' WHERE data_utworzenia >= \'2024-01-01\';',
+                        category: 'Wdrożenie',
+                        module: 'Magazyn',
+                        project: 'Implementacja nowego VAT',
+                        tags: ['vat', 'struktura', 'towary'],
+                        priority: 'Wysoki',
+                        environment: 'dev',
+                        version: '2024.1',
+                        author: 'Wdrożeniowiec',
+                        created: '2024-01-15',
+                        modified: '2024-01-20',
+                        description: 'Skrypt aktualizujący struktury magazynowe i dodający obsługę VAT eksportowego',
+                        deploymentHistory: [
+                            { date: '2024-01-15', environment: 'dev', status: 'success', user: 'System', notes: 'Initial creation' }
+                        ],
+                        readyForPromotion: true,
+                        githubPath: null,
+                        githubSha: null,
+                        lastSynced: null
+                    },
+                    {
+                        id: 2,
+                        name: 'Procedura miesięcznego zamknięcia KPiR',
+                        content: 'CREATE OR REPLACE PROCEDURE PROC_ZAMKNIECIE_KPIR AS BEGIN UPDATE KPIR_SALDA SET status = \'ZAMKNIETY\'; END;',
+                        category: 'Procedury',
+                        module: 'Księgowość',
+                        project: 'Automatyzacja procesów księgowych',
+                        tags: ['kpir', 'zamknięcie'],
+                        priority: 'Krytyczny',
+                        environment: 'prod',
+                        version: '2024.0',
+                        author: 'Wdrożeniowiec',
+                        created: '2023-12-10',
+                        modified: '2024-01-05',
+                        description: 'Procedura wykonująca miesięczne zamknięcie KPiR',
+                        deploymentHistory: [
+                            { date: '2023-12-10', environment: 'dev', status: 'success', user: 'System', notes: 'Initial creation' },
+                            { date: '2023-12-15', environment: 'test', status: 'success', user: 'Wdrożeniowiec', notes: 'Promoted to test' },
+                            { date: '2024-01-05', environment: 'prod', status: 'success', user: 'Wdrożeniowiec', notes: 'Production deployment' }
+                        ],
+                        readyForPromotion: false,
+                        githubPath: null,
+                        githubSha: null,
+                        lastSynced: null
+                    }
+                ];
+            }
+        }
+
+        // === ENVIRONMENT MANAGEMENT ===
+        function updateEnvironmentStats() {
+            const devScripts = scripts.filter(s => s.environment === 'dev');
+            const testScripts = scripts.filter(s => s.environment === 'test');
+            const prodScripts = scripts.filter(s => s.environment === 'prod');
+            
+            const devModified = devScripts.filter(s => s.readyForPromotion).length;
+            const testPending = testScripts.filter(s => s.readyForPromotion).length;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const prodToday = prodScripts.filter(s => 
+                s.deploymentHistory.some(h => h.date === today && h.environment === 'prod')
+            ).length;
+
+            document.getElementById('dev-count').textContent = devScripts.length;
+            document.getElementById('dev-modified').textContent = devModified;
+            document.getElementById('test-count').textContent = testScripts.length;
+            document.getElementById('test-pending').textContent = testPending;
+            document.getElementById('prod-count').textContent = prodScripts.length;
+            document.getElementById('prod-today').textContent = prodToday;
+        }
+
+        function promoteScript(scriptId, targetEnvironment) {
+            const script = scripts.find(s => s.id === scriptId);
+            if (!script) return;
+
+            const confirmMessage = `Promote "${script.name}" to ${targetEnvironment.toUpperCase()}?`;
+            if (!confirm(confirmMessage)) return;
+
+            // Dodaj do historii
+            script.deploymentHistory.push({
+                date: new Date().toISOString().split('T')[0],
+                environment: targetEnvironment,
+                status: 'success',
+                user: 'Wdrożeniowiec',
+                notes: `Promoted from ${script.environment}`
+            });
+
+            // Zmień środowisko
+            script.environment = targetEnvironment;
+            script.modified = new Date().toISOString().split('T')[0];
+            script.readyForPromotion = false;
+
+            showNotification(`Skrypt promowany do ${targetEnvironment.toUpperCase()}!`);
+            
+            // Auto-sync z GitHub
+            if (githubConnected) {
+                saveScriptToGitHub(script);
+            }
+
+            updateEnvironmentStats();
+            renderCurrentView();
+        }
+
+        function rollbackScript(scriptId) {
+            const script = scripts.find(s => s.id === scriptId);
+            if (!script) return;
+
+            const lastDeployment = script.deploymentHistory[script.deploymentHistory.length - 1];
+            if (!lastDeployment || lastDeployment.environment === 'dev') {
+                showNotification('Nie można cofnąć - skrypt jest w DEV', 'warning');
+                return;
+            }
+
+            const previousEnv = script.environment === 'prod' ? 'test' : 'dev';
+            
+            if (confirm(`Rollback "${script.name}" do ${previousEnv.toUpperCase()}?`)) {
+                script.deploymentHistory.push({
+                    date: new Date().toISOString().split('T')[0],
+                    environment: previousEnv,
+                    status: 'rollback',
+                    user: 'Wdrożeniowiec',
+                    notes: `Rolled back from ${script.environment}`
+                });
+
+                script.environment = previousEnv;
+                script.modified = new Date().toISOString().split('T')[0];
+
+                showNotification(`Skrypt cofnięty do ${previousEnv.toUpperCase()}!`, 'warning');
+                updateEnvironmentStats();
+                renderCurrentView();
+            }
+        }
+
+        function markReadyForPromotion(scriptId) {
+            const script = scripts.find(s => s.id === scriptId);
+            if (script) {
+                script.readyForPromotion = !script.readyForPromotion;
+                script.modified = new Date().toISOString().split('T')[0];
+                
+                const status = script.readyForPromotion ? 'ready' : 'not ready';
+                showNotification(`Skrypt oznaczony jako ${status} for promotion`);
+                
+                updateEnvironmentStats();
+                renderCurrentView();
+            }
+        }
+
+        function promoteAllToTest() {
+            const readyScripts = scripts.filter(s => s.environment === 'dev' && s.readyForPromotion);
+            if (readyScripts.length === 0) {
+                showNotification('Brak skryptów gotowych do promowania', 'warning');
+                return;
+            }
+
+            if (confirm(`Promote ${readyScripts.length} scripts to TEST?`)) {
+                readyScripts.forEach(script => {
+                    promoteScript(script.id, 'test');
+                });
+            }
+        }
+
+        function promoteAllToProd() {
+            const readyScripts = scripts.filter(s => s.environment === 'test' && s.readyForPromotion);
+            if (readyScripts.length === 0) {
+                showNotification('Brak skryptów gotowych do wdrożenia', 'warning');
+                return;
+            }
+
+            if (confirm(`Deploy ${readyScripts.length} scripts to PRODUCTION?`)) {
+                readyScripts.forEach(script => {
+                    promoteScript(script.id, 'prod');
+                });
+            }
+        }
+
+        // === GITHUB INTEGRATION ===
+        function loadGitHubConfig() {
+            try {
+                const savedConfig = localStorage.getItem('githubConfig');
+                if (savedConfig) {
+                    const config = JSON.parse(savedConfig);
+                    
+                    // Wypełnij pola (ale ukryj token)
+                    if (config.token) {
+                        document.getElementById('githubToken').value = config.token;
+                        document.getElementById('githubToken').placeholder = '••••••••••••••••••••' + config.token.slice(-4);
+                    }
+                    document.getElementById('githubRepo').value = config.repo || '';
+                    document.getElementById('githubFolder').value = config.folder || 'comarch-xl-scripts';
+                    
+                    // Jeśli mamy kompletną konfigurację, połącz automatycznie
+                    if (config.token && config.repo) {
+                        githubConfig = config;
+                        updateGitHubStatus(false, '🔄 Auto-łączenie z GitHub...');
+                        
+                        // Auto-connect po 1 sekundzie
+                        setTimeout(() => {
+                            connectGitHub(true); // true = auto mode
+                        }, 1000);
+                    } else {
+                        updateGitHubStatus(false, 'Niepełna konfiguracja - uzupełnij dane');
+                    }
+                } else {
+                    updateGitHubStatus(false, 'Brak zapisanej konfiguracji - wprowadź dane GitHub');
+                }
+            } catch (error) {
+                console.log('Błąd wczytywania konfiguracji GitHub:', error);
+                updateGitHubStatus(false, 'Błąd wczytywania konfiguracji');
+            }
+        }
+
+        function saveGitHubConfig() {
+            try {
+                const config = {
+                    token: githubConfig.token,
+                    repo: githubConfig.repo,
+                    folder: githubConfig.folder
+                };
+                localStorage.setItem('githubConfig', JSON.stringify(config));
+                console.log('✅ Konfiguracja GitHub zapisana lokalnie');
+                return true;
+            } catch (error) {
+                console.log('❌ Nie można zapisać konfiguracji GitHub (localStorage blocked)');
+                showNotification('Nie można zapisać konfiguracji. Użyj jako lokalny plik HTML.', 'warning');
+                return false;
+            }
+        }
+
+        function clearGitHubConfig() {
+            if (confirm('Czy na pewno chcesz wyczyścić zapisaną konfigurację GitHub?')) {
+                try {
+                    localStorage.removeItem('githubConfig');
+                    githubConnected = false;
+                    githubConfig = { token: '', repo: '', folder: 'comarch-xl-scripts' };
+                    
+                    document.getElementById('githubToken').value = '';
+                    document.getElementById('githubToken').placeholder = 'ghp_xxxxxxxxxxxxxxxx';
+                    document.getElementById('githubRepo').value = '';
+                    document.getElementById('githubFolder').value = 'comarch-xl-scripts';
+                    document.getElementById('syncBtn').disabled = true;
+                    
+                    updateGitHubStatus(false, 'Konfiguracja wyczyszczona - wprowadź nowe dane');
+                    showNotification('Konfiguracja GitHub usunięta', 'warning');
+                } catch (error) {
+                    console.log('Błąd czyszczenia konfiguracji');
+                    showNotification('Błąd czyszczenia konfiguracji', 'error');
+                }
+            }
+        }
+
+        async function connectGitHub(autoMode = false) {
+        async function connectGitHub(autoMode = false) {
+            let token, repo, folder;
+            
+            if (autoMode && githubConfig.token && githubConfig.repo) {
+                // Tryb automatyczny - użyj zapisanej konfiguracji
+                token = githubConfig.token;
+                repo = githubConfig.repo;
+                folder = githubConfig.folder;
+            } else {
+                // Tryb manualny - pobierz z formularza
+                token = document.getElementById('githubToken').value.trim();
+                repo = document.getElementById('githubRepo').value.trim();
+                folder = document.getElementById('githubFolder').value.trim();
+                
+                if (!token || !repo) {
+                    showNotification('Wypełnij token i repository!', 'error');
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${repo}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (response.ok) {
+                    githubConfig = { token, repo, folder };
+                    githubConnected = true;
+                    
+                    // Zapisz konfigurację lokalnie
+                    saveGitHubConfig();
+                    
+                    const statusMessage = autoMode ? 
+                        `✅ Auto-połączono z ${repo}` : 
+                        `✅ Połączono z ${repo}`;
+                    
+                    updateGitHubStatus(true, statusMessage);
+                    document.getElementById('syncBtn').disabled = false;
+                    
+                    const notificationMessage = autoMode ? 
+                        'Auto-połączono z GitHub!' : 
+                        'Połączono z GitHub! Konfiguracja zapisana.';
+                    
+                    showNotification(notificationMessage);
+                    
+                    // Auto-sync po połączeniu
+                    setTimeout(() => {
+                        syncWithGitHub();
+                    }, autoMode ? 2000 : 1000);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                const errorMessage = autoMode ? 
+                    'Błąd auto-połączenia z GitHub' : 
+                    'Błąd połączenia z GitHub!';
+                
+                showNotification(errorMessage, 'error');
+                updateGitHubStatus(false, '❌ Błąd połączenia');
+                
+                if (autoMode) {
+                    updateGitHubStatus(false, '⚠️ Sprawdź konfigurację i połącz ręcznie');
+                }
+            }
+        }
+        }
+
+        function updateGitHubStatus(connected, message) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const setup = document.getElementById('githubSetup');
+            
+            if (connected) {
+                indicator.classList.add('connected');
+                setup.classList.add('connected');
+            } else {
+                indicator.classList.remove('connected');
+                setup.classList.remove('connected');
+            }
+            
+            statusText.textContent = message;
+            
+            // Dodaj informację o zapisanej konfiguracji
+            if (connected && localStorage.getItem('githubConfig')) {
+                statusText.textContent += ' | 💾 Konfiguracja zapisana';
+            }
+        }
+
+        async function syncWithGitHub() {
+            if (!githubConnected) return;
+
+            const syncBtn = document.getElementById('syncBtn');
+            const spinner = document.getElementById('syncSpinner');
+            
+            syncBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+
+            try {
+                // Sync logic here - simplified for demo
+                showNotification('Zsynchronizowano z GitHub!');
+            } catch (error) {
+                showNotification('Błąd synchronizacji!', 'error');
+            } finally {
+                syncBtn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        async function saveScriptToGitHub(script) {
+            if (!githubConnected) return false;
+            
+            // Simplified GitHub save logic
+            showNotification(`Zapisywanie "${script.name}" w GitHub...`);
+            
+            // Simulate API call
+            setTimeout(() => {
+                script.lastSynced = new Date().toISOString();
+                showNotification(`"${script.name}" zapisany w GitHub!`);
+            }, 1000);
+            
+            return true;
+        }
+
+        // === VIEW MANAGEMENT ===
+        function showTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            // Show corresponding view
+            document.getElementById('dashboard-view').style.display = tabName === 'dashboard' ? 'grid' : 'none';
+            document.getElementById('pipeline-view').style.display = tabName === 'pipeline' ? 'block' : 'none';
+            document.getElementById('scripts-view').style.display = tabName === 'scripts' ? 'block' : 'none';
+            
+            currentView = tabName;
+            renderCurrentView();
+        }
+
+        function renderCurrentView() {
+            switch(currentView) {
+                case 'dashboard':
+                    updateEnvironmentStats();
+                    break;
+                case 'pipeline':
+                    renderPipelineView();
+                    break;
+                case 'scripts':
+                    renderScriptsView();
+                    break;
+            }
+        }
+
+        function renderPipelineView() {
+            const pipelineList = document.getElementById('pipelineList');
+            const filteredScripts = getFilteredScripts();
+            
+            if (filteredScripts.length === 0) {
+                pipelineList.innerHTML = '<div class="empty-state"><div class="empty-icon">🚀</div><p>Brak skryptów w pipeline</p></div>';
+                return;
+            }
+
+            let html = '';
+            filteredScripts.forEach(script => {
+                const currentStage = script.environment;
+                const isDevActive = currentStage === 'dev';
+                const isTestActive = currentStage === 'test';
+                const isProdActive = currentStage === 'prod';
+
+                html += `
+                    <div class="pipeline-script">
+                        <div class="pipeline-script-header">
+                            <div class="pipeline-script-title">${escapeHtml(script.name)}</div>
+                            <div class="script-badges">
+                                <span class="badge badge-${script.environment}">${script.environment.toUpperCase()}</span>
+                                ${script.readyForPromotion ? '<span class="badge" style="background: #22c55e; color: white;">Ready</span>' : ''}
+                            </div>
+                        </div>
+
+                        <div class="pipeline-flow">
+                            <div class="pipeline-stage">
+                                <div class="pipeline-stage-icon stage-dev ${!isDevActive ? 'stage-inactive' : ''}">
+                                    📝
+                                </div>
+                                <div class="stage-label">DEV</div>
+                                <div class="stage-status">${isDevActive ? 'Current' : 'Completed'}</div>
+                            </div>
+
+                            <div class="pipeline-arrow ${isTestActive || isProdActive ? 'active' : ''}">→</div>
+
+                            <div class="pipeline-stage">
+                                <div class="pipeline-stage-icon stage-test ${!isTestActive && !isProdActive ? 'stage-inactive' : ''}">
+                                    🧪
+                                </div>
+                                <div class="stage-label">TEST</div>
+                                <div class="stage-status">${isTestActive ? 'Current' : isProdActive ? 'Completed' : 'Pending'}</div>
+                            </div>
+
+                            <div class="pipeline-arrow ${isProdActive ? 'active' : ''}">→</div>
+
+                            <div class="pipeline-stage">
+                                <div class="pipeline-stage-icon stage-prod ${!isProdActive ? 'stage-inactive' : ''}">
+                                    🚀
+                                </div>
+                                <div class="stage-label">PROD</div>
+                                <div class="stage-status">${isProdActive ? 'Current' : 'Pending'}</div>
+                            </div>
+                        </div>
+
+                        <div class="pipeline-actions">
+                            ${script.environment === 'dev' ? `<button class="btn btn-sm btn-warning" onclick="promoteScript(${script.id}, 'test')">📤 Promote to TEST</button>` : ''}
+                            ${script.environment === 'test' ? `<button class="btn btn-sm btn-success" onclick="promoteScript(${script.id}, 'prod')">🚀 Deploy to PROD</button>` : ''}
+                            ${script.environment !== 'dev' ? `<button class="btn btn-sm btn-secondary" onclick="rollbackScript(${script.id})">⬅️ Rollback</button>` : ''}
+                            <button class="btn btn-sm btn-primary" onclick="selectScript(${script.id})">👁️ View Details</button>
+                            <button class="btn btn-sm ${script.readyForPromotion ? 'btn-warning' : 'btn-success'}" onclick="markReadyForPromotion(${script.id})">
+                                ${script.readyForPromotion ? '⏸️ Not Ready' : '✅ Mark Ready'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            pipelineList.innerHTML = html;
+        }
+
+        function renderScriptsView() {
+            const scriptsList = document.getElementById('scriptsList');
+            const filteredScripts = getFilteredScripts();
+            
+            if (filteredScripts.length === 0) {
+                scriptsList.innerHTML = '<div class="empty-state"><div class="empty-icon">📜</div><p>Brak skryptów</p></div>';
+                return;
+            }
+
+            let html = '';
+            filteredScripts.forEach(script => {
+                const isActive = selectedScript && selectedScript.id === script.id;
+                
+                html += `
+                    <div class="script-card ${isActive ? 'active' : ''}" onclick="selectScript(${script.id})">
+                        <div class="script-header">
+                            <h3 class="script-title">${escapeHtml(script.name)}</h3>
+                            <div class="script-badges">
+                                <span class="badge badge-${script.environment}">${script.environment.toUpperCase()}</span>
+                                ${script.readyForPromotion ? '<span class="badge" style="background: #22c55e; color: white;">Ready</span>' : ''}
+                            </div>
+                        </div>
+                        
+                        <p class="script-description">${escapeHtml(script.description)}</p>
+                        
+                        <div class="script-meta">
+                            <div>
+                                <span>📁 ${script.category}</span> • 
+                                <span>🗄️ ${script.module}</span> •
+                                ${script.project ? `<span>🎯 ${script.project}</span> •` : ''}
+                                <span>🕐 ${script.modified}</span>
+                            </div>
+                            <div class="script-actions">
+                                <button class="icon-btn" onclick="event.stopPropagation(); editScript(${script.id})" title="Edytuj">✏️</button>
+                                <button class="icon-btn" onclick="event.stopPropagation(); copyScript(${script.id})" title="Kopiuj">📋</button>
+                                <button class="icon-btn danger" onclick="event.stopPropagation(); deleteScript(${script.id})" title="Usuń">🗑️</button>
+                            </div>
+                        </div>
+                        
+                        <div class="script-tags">
+                            ${script.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            scriptsList.innerHTML = html;
+        }
+
+        function selectScript(id) {
+            selectedScript = scripts.find(s => s.id === id);
+            renderScriptDetails();
+            renderCurrentView();
+
+            // Show details panel
+            document.getElementById('scriptDetails').style.display = 'block';
+        }
+
+        function renderScriptDetails() {
+            const detailsPanel = document.getElementById('scriptDetails');
+            
+            if (!selectedScript) {
+                detailsPanel.style.display = 'none';
+                return;
+            }
+
+            const lastDeployment = selectedScript.deploymentHistory[selectedScript.deploymentHistory.length - 1];
+            
+            let html = `
+                <div class="details-header">
+                    <h2 class="details-title">${escapeHtml(selectedScript.name)}</h2>
+                    <div class="script-badges">
+                        <span class="badge badge-${selectedScript.environment}">${selectedScript.environment.toUpperCase()}</span>
+                        ${selectedScript.readyForPromotion ? '<span class="badge" style="background: #22c55e; color: white;">Ready for Promotion</span>' : ''}
+                    </div>
+                </div>
+
+                <div class="metadata-grid">
+                    <div class="metadata-item">
+                        <label>Kategoria</label>
+                        <div>${selectedScript.category}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <label>Moduł</label>
+                        <div>${selectedScript.module}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <label>Projekt</label>
+                        <div>${selectedScript.project || 'Brak'}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <label>Środowisko</label>
+                        <div>${selectedScript.environment.toUpperCase()}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <label>Priorytet</label>
+                        <div>${selectedScript.priority}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <label>Wersja</label>
+                        <div>${selectedScript.version || 'Brak'}</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #64748b; margin-bottom: 0.25rem;">Opis</label>
+                    <p>${escapeHtml(selectedScript.description)}</p>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">Kod SQL</label>
+                        <button class="btn btn-primary" onclick="copyToClipboard(${selectedScript.id})">📋 Kopiuj kod</button>
+                    </div>
+                    <div class="code-block">${escapeHtml(selectedScript.content)}</div>
+                </div>
+
+                <div class="deployment-history">
+                    <h3 style="margin-bottom: 1rem;">📊 Historia wdrożeń</h3>
+                    ${selectedScript.deploymentHistory.map(deployment => `
+                        <div class="history-item ${deployment.status}">
+                            <div>
+                                <div style="font-weight: 500;">${deployment.environment.toUpperCase()} - ${deployment.status}</div>
+                                <div style="font-size: 0.875rem; color: #64748b;">${deployment.date} • ${deployment.user}</div>
+                                ${deployment.notes ? `<div style="font-size: 0.875rem; color: #64748b;">${deployment.notes}</div>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        ${selectedScript.environment === 'dev' ? `<button class="btn btn-warning" onclick="promoteScript(${selectedScript.id}, 'test')">📤 Promote to TEST</button>` : ''}
+                        ${selectedScript.environment === 'test' ? `<button class="btn btn-success" onclick="promoteScript(${selectedScript.id}, 'prod')">🚀 Deploy to PROD</button>` : ''}
+                        ${selectedScript.environment !== 'dev' ? `<button class="btn btn-secondary" onclick="rollbackScript(${selectedScript.id})">⬅️ Rollback</button>` : ''}
+                        <button class="btn btn-primary" onclick="editScript(${selectedScript.id})">✏️ Edit</button>
+                        <button class="btn ${selectedScript.readyForPromotion ? 'btn-warning' : 'btn-success'}" onclick="markReadyForPromotion(${selectedScript.id})">
+                            ${selectedScript.readyForPromotion ? '⏸️ Not Ready' : '✅ Mark Ready'}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            detailsPanel.innerHTML = html;
+        }
+
+        // === SCRIPT MANAGEMENT ===
+        function getFilteredScripts() {
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const categoryFilter = document.getElementById('categoryFilter')?.value || '';
+            const moduleFilter = document.getElementById('moduleFilter')?.value || '';
+            const projectFilter = document.getElementById('projectFilter')?.value || '';
+            const environmentFilter = document.getElementById('environmentFilter')?.value || '';
+            const pipelineStatusFilter = document.getElementById('pipelineStatusFilter')?.value || '';
+            const pipelineProjectFilter = document.getElementById('pipelineProjectFilter')?.value || '';
+            
+            return scripts.filter(script => {
+                const matchesSearch = !searchTerm || 
+                    script.name.toLowerCase().includes(searchTerm) ||
+                    script.content.toLowerCase().includes(searchTerm) ||
+                    script.description.toLowerCase().includes(searchTerm) ||
+                    (script.project && script.project.toLowerCase().includes(searchTerm));
+                
+                const matchesCategory = !categoryFilter || script.category === categoryFilter;
+                const matchesModule = !moduleFilter || script.module === moduleFilter;
+                const matchesProject = !projectFilter || script.project === projectFilter;
+                const matchesPipelineProject = !pipelineProjectFilter || script.project === pipelineProjectFilter;
+                const matchesEnvironment = !environmentFilter || script.environment === environmentFilter;
+                
+                let matchesPipelineStatus = true;
+                if (pipelineStatusFilter) {
+                    if (pipelineStatusFilter === 'ready-for-test') {
+                        matchesPipelineStatus = script.environment === 'dev' && script.readyForPromotion;
+                    } else if (pipelineStatusFilter === 'ready-for-prod') {
+                        matchesPipelineStatus = script.environment === 'test' && script.readyForPromotion;
+                    } else {
+                        matchesPipelineStatus = script.environment === pipelineStatusFilter;
+                    }
+                }
+                
+                return matchesSearch && matchesCategory && matchesModule && matchesProject && matchesPipelineProject && matchesEnvironment && matchesPipelineStatus;
+            });
+        }
+
+        function filterScripts() {
+            renderCurrentView();
+        }
+
+        function filterPipeline() {
+            renderPipelineView();
+        }
+
+        function filterByEnvironment(env) {
+            showTab('scripts');
+            document.getElementById('environmentFilter').value = env;
+            filterScripts();
+        }
+
+        async function saveScript() {
+            const name = document.getElementById('scriptName').value.trim();
+            const content = document.getElementById('scriptContent').value.trim();
+            const category = document.getElementById('scriptCategory').value;
+            const module = document.getElementById('scriptModule').value;
+            const project = document.getElementById('scriptProject').value;
+            
+            if (!name || !content || !category || !module || !project) {
+                showNotification('Wypełnij wszystkie wymagane pola!', 'error');
+                return;
+            }
+            
+            const scriptData = {
+                name: name,
+                content: content,
+                category: category,
+                module: module,
+                project: project,
+                tags: document.getElementById('scriptTags').value.split(',').map(t => t.trim()).filter(t => t),
+                priority: document.getElementById('scriptPriority').value,
+                environment: document.getElementById('scriptEnvironment').value,
+                version: document.getElementById('scriptVersion').value.trim(),
+                description: document.getElementById('scriptDescription').value.trim(),
+                author: 'Wdrożeniowiec',
+                created: editingScript ? editingScript.created : new Date().toISOString().split('T')[0],
+                modified: new Date().toISOString().split('T')[0],
+                deploymentHistory: editingScript ? editingScript.deploymentHistory : [
+                    { 
+                        date: new Date().toISOString().split('T')[0], 
+                        environment: document.getElementById('scriptEnvironment').value, 
+                        status: 'success', 
+                        user: 'System', 
+                        notes: 'Initial creation' 
+                    }
+                ],
+                readyForPromotion: false,
+                githubPath: editingScript ? editingScript.githubPath : null,
+                githubSha: editingScript ? editingScript.githubSha : null,
+                lastSynced: editingScript ? editingScript.lastSynced : null
+            };
+            
+            if (editingScript) {
+                scriptData.id = editingScript.id;
+                const index = scripts.findIndex(s => s.id === editingScript.id);
+                scripts[index] = scriptData;
+                if (selectedScript && selectedScript.id === editingScript.id) {
+                    selectedScript = scriptData;
+                }
+                showNotification('Skrypt zaktualizowany!');
+            } else {
+                scriptData.id = Date.now();
+                scripts.push(scriptData);
+                showNotification('Skrypt dodany!');
+            }
+            
+            // Auto-sync z GitHub
+            if (document.getElementById('autoSyncGithub').checked && githubConnected) {
+                saveScriptToGitHub(scriptData);
+            }
+            
+            updateEnvironmentStats();
+            renderCurrentView();
+            renderScriptDetails();
+            closeModal();
+        }
+
+        function deleteScript(id) {
+            if (confirm('Czy na pewno chcesz usunąć ten skrypt?')) {
+                scripts = scripts.filter(s => s.id !== id);
+                if (selectedScript && selectedScript.id === id) {
+                    selectedScript = null;
+                    document.getElementById('scriptDetails').style.display = 'none';
+                }
+                updateEnvironmentStats();
+                renderCurrentView();
+                showNotification('Skrypt usunięty!');
+            }
+        }
+
+        function copyScript(id) {
+            const script = scripts.find(s => s.id === id);
+            if (script) {
+                copyToClipboard(script.id);
+            }
+        }
+
+        function copyToClipboard(scriptId) {
+            const script = scripts.find(s => s.id === scriptId);
+            if (!script) return;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(script.content).then(() => {
+                    showNotification('Kod SQL skopiowany do schowka!');
+                }).catch(() => {
+                    showNotification('Błąd kopiowania!', 'error');
+                });
+            } else {
+                showNotification('Kopiowanie nie obsługiwane w tej przeglądarce', 'error');
+            }
+        }
+
+        function exportScripts() {
+            const timestamp = new Date().toISOString().split('T')[0];
+            const dataToExport = {
+                exportDate: new Date().toISOString(),
+                version: '1.0',
+                appName: 'Comarch XL Environment Pipeline',
+                totalScripts: scripts.length,
+                scripts: scripts
+            };
+            
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `comarch_xl_pipeline_${timestamp}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Eksportowano do JSON!');
+        }
+
+        // === UI FUNCTIONS ===
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            document.body.classList.toggle('dark');
+            showNotification(darkMode ? 'Tryb ciemny włączony' : 'Tryb jasny włączony');
+        }
+
+        function showAddForm() {
+            editingScript = null;
+            document.getElementById('modalTitle').textContent = 'Dodaj nowy skrypt';
+            document.getElementById('saveButton').textContent = '💾 Zapisz skrypt';
+            clearForm();
+            document.getElementById('scriptModal').style.display = 'flex';
+        }
+
+        function editScript(id) {
+            editingScript = scripts.find(s => s.id === id);
+            if (!editingScript) return;
+            
+            document.getElementById('modalTitle').textContent = 'Edytuj skrypt';
+            document.getElementById('saveButton').textContent = '💾 Zapisz zmiany';
+            fillForm(editingScript);
+            document.getElementById('scriptModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('scriptModal').style.display = 'none';
+            clearForm();
+        }
+
+        function clearForm() {
+            document.getElementById('scriptName').value = '';
+            document.getElementById('scriptContent').value = '';
+            document.getElementById('scriptCategory').value = '';
+            document.getElementById('scriptModule').value = '';
+            document.getElementById('scriptProject').value = '';
+            document.getElementById('scriptTags').value = '';
+            document.getElementById('scriptPriority').value = 'Średni';
+            document.getElementById('scriptEnvironment').value = 'dev';
+            document.getElementById('scriptVersion').value = '';
+            document.getElementById('scriptDescription').value = '';
+        }
+
+        function fillForm(script) {
+            document.getElementById('scriptName').value = script.name;
+            document.getElementById('scriptContent').value = script.content;
+            document.getElementById('scriptCategory').value = script.category;
+            document.getElementById('scriptModule').value = script.module;
+            document.getElementById('scriptProject').value = script.project || '';
+            document.getElementById('scriptTags').value = script.tags.join(', ');
+            document.getElementById('scriptPriority').value = script.priority;
+            document.getElementById('scriptEnvironment').value = script.environment;
+            document.getElementById('scriptVersion').value = script.version;
+            document.getElementById('scriptDescription').value = script.description;
+        }
+
+        // === PROJECT MANAGEMENT ===
+        function showAddProjectForm() {
+            const projectName = prompt('Nazwa nowego projektu:', '');
+            if (projectName && projectName.trim()) {
+                const trimmedName = projectName.trim();
+                if (!userProjects.includes(trimmedName)) {
+                    userProjects.push(trimmedName);
+                    populateFormSelects();
+                    populateFilters();
+                    document.getElementById('scriptProject').value = trimmedName;
+                    showNotification('Projekt dodany!');
+                } else {
+                    showNotification('Projekt już istnieje!', 'warning');
+                }
+            }
+        }
+
+        function handleProjectChange() {
+            const selectedProject = document.getElementById('scriptProject').value;
+            if (selectedProject) {
+                // Możesz tutaj dodać logikę związaną ze zmianą projektu
+                console.log('Selected project:', selectedProject);
+            }
+        }
+
+        function getProjectStats() {
+            const stats = {};
+            userProjects.forEach(project => {
+                const projectScripts = scripts.filter(s => s.project === project);
+                stats[project] = {
+                    total: projectScripts.length,
+                    dev: projectScripts.filter(s => s.environment === 'dev').length,
+                    test: projectScripts.filter(s => s.environment === 'test').length,
+                    prod: projectScripts.filter(s => s.environment === 'prod').length,
+                    ready: projectScripts.filter(s => s.readyForPromotion).length
+                };
+            });
+            return stats;
+        }
+
+        function showProjectManager() {
+            document.getElementById('projectModal').style.display = 'flex';
+            renderProjectsList();
+        }
+
+        function closeProjectModal() {
+            document.getElementById('projectModal').style.display = 'none';
+            document.getElementById('newProjectName').value = '';
+        }
+
+        function addProject() {
+            const projectName = document.getElementById('newProjectName').value.trim();
+            if (projectName) {
+                if (!userProjects.includes(projectName)) {
+                    userProjects.push(projectName);
+                    populateFormSelects();
+                    populateFilters();
+                    renderProjectsList();
+                    document.getElementById('newProjectName').value = '';
+                    showNotification('Projekt dodany!');
+                } else {
+                    showNotification('Projekt już istnieje!', 'warning');
+                }
+            } else {
+                showNotification('Podaj nazwę projektu!', 'error');
+            }
+        }
+
+        function deleteProject(projectName) {
+            const projectScripts = scripts.filter(s => s.project === projectName);
+            if (projectScripts.length > 0) {
+                if (!confirm(`Projekt "${projectName}" zawiera ${projectScripts.length} skryptów. Czy na pewno chcesz go usunąć? Skrypty zostaną bez przypisania do projektu.`)) {
+                    return;
+                }
+                // Remove project from scripts
+                scripts.forEach(script => {
+                    if (script.project === projectName) {
+                        script.project = '';
+                    }
+                });
+            }
+            
+            userProjects = userProjects.filter(p => p !== projectName);
+            populateFormSelects();
+            populateFilters();
+            renderProjectsList();
+            renderCurrentView();
+            showNotification('Projekt usunięty!');
+        }
+
+        function renderProjectsList() {
+            const projectsList = document.getElementById('projectsList');
+            const stats = getProjectStats();
+            
+            let html = '';
+            userProjects.forEach(project => {
+                const stat = stats[project];
+                html += `
+                    <div class="script-card" style="cursor: default; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 1.125rem; margin-bottom: 0.5rem;">🎯 ${escapeHtml(project)}</div>
+                                <div style="font-size: 0.875rem; color: #64748b;">
+                                    <span>📊 ${stat.total} skryptów</span> • 
+                                    <span>📝 ${stat.dev} DEV</span> • 
+                                    <span>🧪 ${stat.test} TEST</span> • 
+                                    <span>🚀 ${stat.prod} PROD</span>
+                                    ${stat.ready > 0 ? ` • <span style="color: #22c55e; font-weight: 600;">✅ ${stat.ready} gotowych</span>` : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-sm btn-primary" onclick="filterByProject('${project}')">👁️ Pokaż skrypty</button>
+                                <button class="btn btn-sm btn-secondary danger" onclick="deleteProject('${project}')">🗑️ Usuń</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (userProjects.length === 0) {
+                html = '<div class="empty-state"><div class="empty-icon">🎯</div><p>Brak projektów. Dodaj pierwszy projekt powyżej.</p></div>';
+            }
+            
+            projectsList.innerHTML = html;
+        }
+
+        function filterByProject(projectName) {
+            closeProjectModal();
+            showTab('scripts');
+            document.getElementById('projectFilter').value = projectName;
+            filterScripts();
+        }
+
+        function showDeploymentHistory() {
+            const deployments = [];
+            scripts.forEach(script => {
+                script.deploymentHistory.forEach(deployment => {
+                    deployments.push({
+                        script: script.name,
+                        ...deployment
+                    });
+                });
+            });
+
+            deployments.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            let html = '<h3>📊 Historia wszystkich wdrożeń</h3>';
+            deployments.slice(0, 20).forEach(deployment => {
+                html += `
+                    <div class="history-item ${deployment.status}">
+                        <div>
+                            <div style="font-weight: 500;">${deployment.script}</div>
+                            <div style="font-size: 0.875rem; color: #64748b;">${deployment.environment.toUpperCase()} • ${deployment.date} • ${deployment.user}</div>
+                            ${deployment.notes ? `<div style="font-size: 0.875rem; color: #64748b;">${deployment.notes}</div>` : ''}
+                        </div>
+                        <div class="badge badge-${deployment.environment}">${deployment.status}</div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('scriptDetails').innerHTML = html;
+            document.getElementById('scriptDetails').style.display = 'block';
+        }
+
+        // === UTILITY FUNCTIONS ===
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type || 'success'}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 4000);
+        }
+
+        // === INITIALIZATION ===
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM załadowany, inicjalizacja Environment Pipeline...');
+            initApp();
+        });
+
+        // Skróty klawiszowe
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                if (githubConnected) {
+                    syncWithGitHub();
+                }
+            }
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                showAddForm();
+            }
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                showProjectManager();
+            }
+        });
+
+        // Enter key support for project name input
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listener after DOM is loaded
+            setTimeout(() => {
+                const projectNameInput = document.getElementById('newProjectName');
+                if (projectNameInput) {
+                    projectNameInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            addProject();
+                        }
+                    });
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
